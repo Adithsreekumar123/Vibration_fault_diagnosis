@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large datasets (DO NOT UPLOAD)
+data/raw/
+data/processed/
+
+# Model outputs
+results/
+
+# IDE
+.vscode/
+.idea/
