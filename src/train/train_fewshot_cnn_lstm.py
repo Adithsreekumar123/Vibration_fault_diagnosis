@@ -1,5 +1,6 @@
 # src/train/train_fewshot_cnn_lstm.py
 
+import os
 import torch
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score, confusion_matrix
@@ -12,12 +13,18 @@ from src.models.cnn_lstm_classifier import CNNLSTMClassifier
 def train_fewshot_cnn_lstm(
     data_path="data/processed/paderborn_windows.npz",
     pretrained_ckpt="results/supervised/cnn_lstm_cwru.pt",
+    out_path=None,  # Auto-generated if None
     fraction=0.05,      # 5% few-shot
     epochs=15,
     batch_size=128,
     lr=1e-3
 ):
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    
+    # Auto-generate output path
+    if out_path is None:
+        pct = int(fraction * 100)
+        out_path = f"results/supervised/cnn_lstm_fewshot_{pct}pct.pt"
 
     # -------- Dataset --------
     dataset = SupervisedDataset(data_path)
@@ -25,6 +32,9 @@ def train_fewshot_cnn_lstm(
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_ds, batch_size=batch_size)
+    
+    print(f"📊 Few-shot training: {len(train_ds)} samples ({fraction*100:.0f}%)")
+    print(f"📊 Test set: {len(test_ds)} samples")
 
     # -------- Model --------
     model = CNNLSTMClassifier(num_classes=4).to(device)
@@ -69,12 +79,20 @@ def train_fewshot_cnn_lstm(
                 y_true.extend(y.numpy())
 
         acc = accuracy_score(y_true, y_pred)
-        best_acc = max(best_acc, acc)
+        
+        # Save best model
+        if acc > best_acc:
+            best_acc = acc
+            os.makedirs(os.path.dirname(out_path), exist_ok=True)
+            torch.save(model.state_dict(), out_path)
+        
         print(f"Epoch [{epoch}/{epochs}] - Few-shot Acc (CNN-LSTM): {acc:.4f}")
 
     cm = confusion_matrix(y_true, y_pred)
     print("\nConfusion Matrix (Few-shot CNN-LSTM):\n", cm)
     print(f"\n✅ Best Few-shot Accuracy (CNN-LSTM): {best_acc:.4f}")
+    print(f"💾 Model saved to: {out_path}")
 
-    return best_acc
+    return best_acc, model
+
 

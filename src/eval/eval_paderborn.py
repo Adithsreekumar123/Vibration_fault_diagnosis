@@ -20,7 +20,7 @@ def evaluate_paderborn(
 
     # Load model
     model = CNNClassifier(num_classes=4).to(device)
-    model.load_state_dict(torch.load(model_ckpt))
+    model.load_state_dict(torch.load(model_ckpt, map_location=device))
     model.eval()
 
     print("✅ Loaded CWRU-trained model")

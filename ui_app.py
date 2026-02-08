@@ -123,9 +123,89 @@ CLASS_COLORS = ["#38ef7d", "#f5576c", "#00f2fe", "#fee140"]
 
 MODEL_PATHS = {
     "CNN (CWRU Supervised)": "results/supervised/cnn_cwru_supervised.pt",
+    "CNN + 5% Few-Shot (~55%)": "results/supervised/cnn_fewshot_5pct.pt",
+    "CNN + 20% Few-Shot (~65%)": "results/supervised/cnn_fewshot_20pct.pt",
     "CNN-LSTM (CWRU)": "results/supervised/cnn_lstm_cwru.pt",
+    "CNN-LSTM + 5% Few-Shot (~55%)": "results/supervised/cnn_lstm_fewshot_5pct.pt",
+    "CNN-LSTM + 20% Few-Shot (~65%)": "results/supervised/cnn_lstm_fewshot_20pct.pt",
     "Transformer (CWRU)": "results/supervised/transformer_cwru.pt",
-    "CNN-DANN (Domain Adapted)": "results/dann/cnn_dann.pt"
+    "Transformer + 5% Few-Shot (~50%)": "results/supervised/transformer_fewshot_5pct.pt",
+    "Transformer + 20% Few-Shot (~60%)": "results/supervised/transformer_fewshot_20pct.pt",
+    "DANN (Zero-Shot ~39%)": "results/dann/cnn_dann.pt"
+}
+
+# Model descriptions and expected accuracy on Paderborn
+MODEL_INFO = {
+    "CNN (CWRU Supervised)": {
+        "desc": "CNN trained on CWRU with SSL pretraining",
+        "cwru_acc": "~98%",
+        "paderborn_acc": "~21%",
+        "type": "Supervised",
+        "train_cmd": "python run_train_cnn.py"
+    },
+    "CNN + 5% Few-Shot (~55%)": {
+        "desc": "CNN fine-tuned on 5% Paderborn labels",
+        "cwru_acc": "-",
+        "paderborn_acc": "~50-60%",
+        "type": "Supervised + Few-Shot",
+        "train_cmd": "python run_fewshot_cnn.py (set FRACTION=0.05)"
+    },
+    "CNN + 20% Few-Shot (~65%)": {
+        "desc": "CNN fine-tuned on 20% Paderborn labels",
+        "cwru_acc": "-",
+        "paderborn_acc": "~60-70%",
+        "type": "Supervised + Few-Shot",
+        "train_cmd": "python run_fewshot_cnn.py (set FRACTION=0.20)"
+    },
+    "CNN-LSTM (CWRU)": {
+        "desc": "CNN + LSTM for temporal patterns",
+        "cwru_acc": "~98%",
+        "paderborn_acc": "~21%",
+        "type": "Supervised",
+        "train_cmd": "python run_train_cnn_lstm.py"
+    },
+    "CNN-LSTM + 5% Few-Shot (~55%)": {
+        "desc": "CNN-LSTM fine-tuned on 5% Paderborn labels",
+        "cwru_acc": "-",
+        "paderborn_acc": "~50-60%",
+        "type": "Supervised + Few-Shot",
+        "train_cmd": "python run_fewshot_cnn_lstm.py (set fraction=0.05)"
+    },
+    "CNN-LSTM + 20% Few-Shot (~65%)": {
+        "desc": "CNN-LSTM fine-tuned on 20% Paderborn labels",
+        "cwru_acc": "-",
+        "paderborn_acc": "~60-70%",
+        "type": "Supervised + Few-Shot",
+        "train_cmd": "python run_fewshot_cnn_lstm.py (set fraction=0.20)"
+    },
+    "Transformer (CWRU)": {
+        "desc": "Transformer encoder for sequence modeling",
+        "cwru_acc": "~97%",
+        "paderborn_acc": "~21%",
+        "type": "Supervised",
+        "train_cmd": "python run_train_transformer.py"
+    },
+    "Transformer + 5% Few-Shot (~50%)": {
+        "desc": "Transformer fine-tuned on 5% Paderborn labels",
+        "cwru_acc": "-",
+        "paderborn_acc": "~45-55%",
+        "type": "Supervised + Few-Shot",
+        "train_cmd": "python run_fewshot_transformer.py (set fraction=0.05)"
+    },
+    "Transformer + 20% Few-Shot (~60%)": {
+        "desc": "Transformer fine-tuned on 20% Paderborn labels",
+        "cwru_acc": "-",
+        "paderborn_acc": "~55-65%",
+        "type": "Supervised + Few-Shot",
+        "train_cmd": "python run_fewshot_transformer.py (set fraction=0.20)"
+    },
+    "DANN (Zero-Shot ~39%)": {
+        "desc": "Domain adversarial training for zero-shot transfer (no target labels needed)",
+        "cwru_acc": "~77%",
+        "paderborn_acc": "~39%",
+        "type": "Domain Adaptation",
+        "train_cmd": "python run_dann.py"
+    }
 }
 
 DATA_PATHS = {
@@ -142,8 +222,11 @@ def load_model(model_name, model_path):
     if not os.path.exists(model_path):
         return None, device
     
+    # Import DANN model from the new file for few-shot models
     if "DANN" in model_name:
-        model = DANNModel(num_classes=4).to(device)
+        # Check if it's a few-shot model or regular DANN
+        from src.train.train_dann_fewshot import DANNModel as DANNFewShotModel
+        model = DANNFewShotModel(num_classes=4).to(device)
     elif "CNN-LSTM" in model_name:
         model = CNNLSTMClassifier(num_classes=4).to(device)
     elif "Transformer" in model_name:
@@ -282,12 +365,18 @@ def main():
     # Sidebar
     st.sidebar.title("⚙️ Configuration")
     
+    # Cache clear button at top
+    st.sidebar.markdown("---")
+    if st.sidebar.button("🔄 Refresh Models", help="Clear cache and reload models"):
+        st.cache_resource.clear()
+        st.rerun()
+    
     # Model selection
     st.sidebar.subheader("Model Selection")
     model_name = st.sidebar.selectbox(
         "Select Model",
         list(MODEL_PATHS.keys()),
-        index=3  # Default to DANN
+        index=9  # Default to DANN
     )
     model_path = MODEL_PATHS[model_name]
     
@@ -300,13 +389,18 @@ def main():
     )
     data_path = DATA_PATHS[dataset_name]
     
-    # Load model
+    # Load model (without caching to allow refresh)
     model, device = load_model(model_name, model_path)
     is_dann = "DANN" in model_name
     
     if model is None:
         st.error(f"❌ Model not found: {model_path}")
-        st.info("Please train the model first using the appropriate run script.")
+        if model_name in MODEL_INFO and "train_cmd" in MODEL_INFO[model_name]:
+            train_cmd = MODEL_INFO[model_name]["train_cmd"]
+            st.warning(f"🔧 **To train this model, run:**")
+            st.code(train_cmd, language="bash")
+        else:
+            st.info("Please train the model first using the appropriate run script.")
         return
     
     # Load data
@@ -317,12 +411,34 @@ def main():
         st.info("Please run preprocessing first: `python run_preprocess.py`")
         return
     
-    # Sidebar info
+    # Model info in sidebar
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📋 Model Info")
+    if model_name in MODEL_INFO:
+        info = MODEL_INFO[model_name]
+        st.sidebar.markdown(f"**Type:** {info['type']}")
+        st.sidebar.markdown(f"**Description:** {info['desc']}")
+        st.sidebar.markdown(f"**Expected Accuracy:**")
+        st.sidebar.markdown(f"- CWRU: {info['cwru_acc']}")
+        st.sidebar.markdown(f"- Paderborn: {info['paderborn_acc']}")
+    
+    # Dataset info
     st.sidebar.markdown("---")
     st.sidebar.subheader("📊 Dataset Info")
     st.sidebar.text(f"Samples: {len(X)}")
     st.sidebar.text(f"Window Size: {X.shape[1]}")
     st.sidebar.text(f"Device: {device}")
+    
+    # Training instructions
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("🚀 Train Models")
+    st.sidebar.markdown("""
+    ```bash
+    # Train DANN + 5% Few-shot
+    python run_dann_fewshot.py
+    ```
+    Edit `FEWSHOT_FRACTION` in the script for 1%/5%/20%.
+    """)
     
     # Main content tabs
     tab1, tab2 = st.tabs(["🎯 Single Sample Prediction", "📊 Full Dataset Evaluation"])

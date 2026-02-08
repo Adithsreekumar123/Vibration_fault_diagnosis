@@ -21,12 +21,12 @@ if __name__ == "__main__":
     model = train_dann(
         source_path="data/processed/cwru_windows.npz",
         target_path="data/processed/paderborn_windows.npz",
-        ssl_ckpt="results/ssl/encoder_cwru_ssl.pt",
+        ssl_ckpt="results/ssl/encoder_combined_ssl.pt",  # Use combined SSL encoder
         out_path="results/dann/cnn_dann.pt",
-        epochs=50,
+        epochs=100,  # More epochs for better accuracy
         batch_size=128,
         lr=1e-3,
-        lambda_domain=0.5  # Balance between classification and domain loss
+        lambda_domain=0.5
     )
     
     # Full evaluation
