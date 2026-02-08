@@ -44,7 +44,9 @@ st.markdown("""
     .main-header {
         font-size: 2.5rem;
         font-weight: 700;
-        color: #1E88E5;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         text-align: center;
         margin-bottom: 1rem;
     }
@@ -54,21 +56,62 @@ st.markdown("""
         text-align: center;
         margin-bottom: 2rem;
     }
-    .metric-card {
+    
+    /* Premium metric cards with gradients */
+    div[data-testid="stMetric"] {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 1.5rem;
         border-radius: 12px;
-        color: white;
-        text-align: center;
-        margin: 0.5rem 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    .fault-normal { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-    .fault-ball { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-    .fault-inner { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-    .fault-outer { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-    .stMetric {
-        background-color: #f0f2f6;
-        padding: 1rem;
+    
+    div[data-testid="stMetric"] > label {
+        color: white !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
+    }
+    
+    div[data-testid="stMetric"] > div {
+        color: white !important;
+        font-weight: 700 !important;
+        font-size: 1.8rem !important;
+    }
+    
+    /* Different gradient for each column */
+    div[data-testid="column"]:nth-child(1) div[data-testid="stMetric"] {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    
+    div[data-testid="column"]:nth-child(2) div[data-testid="stMetric"] {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    div[data-testid="column"]:nth-child(3) div[data-testid="stMetric"] {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    div[data-testid="column"]:nth-child(4) div[data-testid="stMetric"] {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 2rem;
+        font-weight: 600;
+        transition: transform 0.2s;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Success/Error boxes */
+    .element-container .stAlert {
         border-radius: 8px;
     }
 </style>
@@ -300,7 +343,7 @@ def main():
             random_btn = st.button("🎲 Random Sample")
             if random_btn:
                 sample_idx = np.random.randint(0, len(X))
-                st.experimental_rerun()
+                st.rerun()
         
         # Get sample
         signal = X[sample_idx]

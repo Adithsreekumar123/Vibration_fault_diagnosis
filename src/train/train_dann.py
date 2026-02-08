@@ -102,19 +102,38 @@ def train_dann(
     
     # Load SSL pretrained weights
     if os.path.exists(ssl_ckpt):
-        model.encoder.load_state_dict(torch.load(ssl_ckpt))
+        model.encoder.load_state_dict(torch.load(ssl_ckpt, map_location=device))
         print(f"✅ Loaded SSL pretrained encoder from: {ssl_ckpt}")
     else:
         print("⚠️ SSL checkpoint not found, training from scratch")
     
+    # ===== Compute class weights for balanced training =====
+    from sklearn.utils.class_weight import compute_class_weight
+    import numpy as np
+    
+    # Get class labels from source dataset
+    unique_classes = np.unique(dataset.source_y)
+    class_weights = compute_class_weight(
+        'balanced',
+        classes=unique_classes,
+        y=dataset.source_y
+    )
+    class_weights = torch.tensor(class_weights, dtype=torch.float32).to(device)
+    
+    print(f"📊 Class weights (to fix imbalance):")
+    class_names = ["Normal", "Ball", "Inner", "Outer"]
+    for i, (name, weight) in enumerate(zip(class_names, class_weights)):
+        print(f"   {name}: {weight:.3f}")
+    print()
+    
     # Optimizers
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     
-    # Loss functions
-    class_criterion = nn.CrossEntropyLoss()
+    # Loss functions (with class weights for balanced training)
+    class_criterion = nn.CrossEntropyLoss(weight=class_weights)
     domain_criterion = nn.BCELoss()
     
-    print(f"\n🚀 Starting DANN training for {epochs} epochs...")
+    print(f"🚀 Starting DANN training for {epochs} epochs...")
     print(f"   Lambda (domain loss weight): {lambda_domain}")
     print("-" * 60)
     
@@ -230,7 +249,7 @@ def evaluate_dann_full(
     
     # Load model
     model = DANNModel(num_classes=4).to(device)
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
     
     print(f"✅ Loaded DANN model from: {model_path}")
