@@ -122,85 +122,93 @@ CLASS_NAMES = ["Normal", "Ball Fault", "Inner Race Fault", "Outer Race Fault"]
 CLASS_COLORS = ["#38ef7d", "#f5576c", "#00f2fe", "#fee140"]
 
 MODEL_PATHS = {
-    "CNN (CWRU Supervised)": "results/supervised/cnn_cwru_supervised.pt",
-    "CNN + 5% Few-Shot (~55%)": "results/supervised/cnn_fewshot_5pct.pt",
-    "CNN + 20% Few-Shot (~65%)": "results/supervised/cnn_fewshot_20pct.pt",
-    "CNN-LSTM (CWRU)": "results/supervised/cnn_lstm_cwru.pt",
-    "CNN-LSTM + 5% Few-Shot (~55%)": "results/supervised/cnn_lstm_fewshot_5pct.pt",
-    "CNN-LSTM + 20% Few-Shot (~65%)": "results/supervised/cnn_lstm_fewshot_20pct.pt",
-    "Transformer (CWRU)": "results/supervised/transformer_cwru.pt",
-    "Transformer + 5% Few-Shot (~50%)": "results/supervised/transformer_fewshot_5pct.pt",
-    "Transformer + 20% Few-Shot (~60%)": "results/supervised/transformer_fewshot_20pct.pt",
-    "DANN (Zero-Shot ~39%)": "results/dann/cnn_dann.pt"
+    "CNN": "results/supervised/cnn_cwru_split.pt",
+    "CNN + 5% Few-Shot": "results/supervised/cnn_fewshot_5pct.pt",
+    "CNN + 20% Few-Shot": "results/supervised/cnn_fewshot_20pct.pt",
+    "CNN-LSTM": "results/supervised/cnn_lstm_cwru.pt",
+    "CNN-LSTM + 5% Few-Shot": "results/supervised/cnn_lstm_fewshot_5pct.pt",
+    "CNN-LSTM + 20% Few-Shot": "results/supervised/cnn_lstm_fewshot_20pct.pt",
+    "Transformer": "results/supervised/transformer_cwru.pt",
+    "Transformer + 5% Few-Shot": "results/supervised/transformer_fewshot_5pct.pt",
+    "Transformer + 20% Few-Shot": "results/supervised/transformer_fewshot_20pct.pt",
+    "Hybrid (CNN-LSTM-Transformer)": "results/supervised/hybrid_cwru.pt",
+    "DANN": "results/dann/cnn_dann.pt"
 }
 
 # Model descriptions and expected accuracy on Paderborn
 MODEL_INFO = {
-    "CNN (CWRU Supervised)": {
-        "desc": "CNN trained on CWRU with SSL pretraining",
-        "cwru_acc": "~98%",
+    "CNN": {
+        "desc": "1D CNN with recording-based split (NO data leakage)",
+        "cwru_acc": "100%",
         "paderborn_acc": "~21%",
         "type": "Supervised",
-        "train_cmd": "python run_train_cnn.py"
+        "train_cmd": "python run_train_split.py"
     },
-    "CNN + 5% Few-Shot (~55%)": {
+    "CNN + 5% Few-Shot": {
         "desc": "CNN fine-tuned on 5% Paderborn labels",
         "cwru_acc": "-",
-        "paderborn_acc": "~50-60%",
-        "type": "Supervised + Few-Shot",
-        "train_cmd": "python run_fewshot_cnn.py (set FRACTION=0.05)"
+        "paderborn_acc": "~55%",
+        "type": "Few-Shot Learning",
+        "train_cmd": "python run_fewshot_cnn.py"
     },
-    "CNN + 20% Few-Shot (~65%)": {
+    "CNN + 20% Few-Shot": {
         "desc": "CNN fine-tuned on 20% Paderborn labels",
         "cwru_acc": "-",
-        "paderborn_acc": "~60-70%",
-        "type": "Supervised + Few-Shot",
-        "train_cmd": "python run_fewshot_cnn.py (set FRACTION=0.20)"
+        "paderborn_acc": "~65%",
+        "type": "Few-Shot Learning",
+        "train_cmd": "python run_fewshot_cnn.py"
     },
-    "CNN-LSTM (CWRU)": {
+    "CNN-LSTM": {
         "desc": "CNN + LSTM for temporal patterns",
         "cwru_acc": "~98%",
         "paderborn_acc": "~21%",
         "type": "Supervised",
         "train_cmd": "python run_train_cnn_lstm.py"
     },
-    "CNN-LSTM + 5% Few-Shot (~55%)": {
+    "CNN-LSTM + 5% Few-Shot": {
         "desc": "CNN-LSTM fine-tuned on 5% Paderborn labels",
         "cwru_acc": "-",
-        "paderborn_acc": "~50-60%",
-        "type": "Supervised + Few-Shot",
-        "train_cmd": "python run_fewshot_cnn_lstm.py (set fraction=0.05)"
+        "paderborn_acc": "~55%",
+        "type": "Few-Shot Learning",
+        "train_cmd": "python run_fewshot_cnn_lstm.py"
     },
-    "CNN-LSTM + 20% Few-Shot (~65%)": {
+    "CNN-LSTM + 20% Few-Shot": {
         "desc": "CNN-LSTM fine-tuned on 20% Paderborn labels",
         "cwru_acc": "-",
-        "paderborn_acc": "~60-70%",
-        "type": "Supervised + Few-Shot",
-        "train_cmd": "python run_fewshot_cnn_lstm.py (set fraction=0.20)"
+        "paderborn_acc": "~65%",
+        "type": "Few-Shot Learning",
+        "train_cmd": "python run_fewshot_cnn_lstm.py"
     },
-    "Transformer (CWRU)": {
+    "Transformer": {
         "desc": "Transformer encoder for sequence modeling",
         "cwru_acc": "~97%",
         "paderborn_acc": "~21%",
         "type": "Supervised",
         "train_cmd": "python run_train_transformer.py"
     },
-    "Transformer + 5% Few-Shot (~50%)": {
+    "Transformer + 5% Few-Shot": {
         "desc": "Transformer fine-tuned on 5% Paderborn labels",
         "cwru_acc": "-",
-        "paderborn_acc": "~45-55%",
-        "type": "Supervised + Few-Shot",
-        "train_cmd": "python run_fewshot_transformer.py (set fraction=0.05)"
+        "paderborn_acc": "~50%",
+        "type": "Few-Shot Learning",
+        "train_cmd": "python run_fewshot_transformer.py"
     },
-    "Transformer + 20% Few-Shot (~60%)": {
+    "Transformer + 20% Few-Shot": {
         "desc": "Transformer fine-tuned on 20% Paderborn labels",
         "cwru_acc": "-",
-        "paderborn_acc": "~55-65%",
-        "type": "Supervised + Few-Shot",
-        "train_cmd": "python run_fewshot_transformer.py (set fraction=0.20)"
+        "paderborn_acc": "~60%",
+        "type": "Few-Shot Learning",
+        "train_cmd": "python run_fewshot_transformer.py"
     },
-    "DANN (Zero-Shot ~39%)": {
-        "desc": "Domain adversarial training for zero-shot transfer (no target labels needed)",
+    "Hybrid (CNN-LSTM-Transformer)": {
+        "desc": "CNN (local) + LSTM (memory) + Transformer (global attention)",
+        "cwru_acc": "100%",
+        "paderborn_acc": "~25%",
+        "type": "Hybrid Deep Learning",
+        "train_cmd": "python run_train_hybrid.py"
+    },
+    "DANN": {
+        "desc": "Domain Adversarial Neural Network for cross-domain transfer",
         "cwru_acc": "~77%",
         "paderborn_acc": "~39%",
         "type": "Domain Adaptation",
@@ -209,8 +217,8 @@ MODEL_INFO = {
 }
 
 DATA_PATHS = {
-    "CWRU (Lab Data)": "data/processed/cwru_windows.npz",
-    "Paderborn (Real-World Data)": "data/processed/paderborn_windows.npz"
+    "CWRU": "data/processed/cwru_windows.npz",
+    "Paderborn": "data/processed/paderborn_windows.npz"
 }
 
 
@@ -222,11 +230,13 @@ def load_model(model_name, model_path):
     if not os.path.exists(model_path):
         return None, device
     
-    # Import DANN model from the new file for few-shot models
     if "DANN" in model_name:
         # Check if it's a few-shot model or regular DANN
         from src.train.train_dann_fewshot import DANNModel as DANNFewShotModel
         model = DANNFewShotModel(num_classes=4).to(device)
+    elif "Hybrid" in model_name:
+        from src.models.cnn_lstm_transformer import CNNLSTMTransformer
+        model = CNNLSTMTransformer(num_classes=4).to(device)
     elif "CNN-LSTM" in model_name:
         model = CNNLSTMClassifier(num_classes=4).to(device)
     elif "Transformer" in model_name:
@@ -376,7 +386,7 @@ def main():
     model_name = st.sidebar.selectbox(
         "Select Model",
         list(MODEL_PATHS.keys()),
-        index=9  # Default to DANN
+        index=0  # Default to CNN
     )
     model_path = MODEL_PATHS[model_name]
     

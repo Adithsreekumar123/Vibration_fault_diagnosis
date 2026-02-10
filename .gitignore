@@ -21,3 +21,8 @@ results/
 # IDE
 .vscode/
 .idea/
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+frontend/.env.development
